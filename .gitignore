@@ -1,0 +1,21 @@
+# ─── Dependencias ─────────────────────────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+
+# ─── Variables de entorno — NUNCA subir al repositorio ────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Editor / OS ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+.vscode/settings.json
+
+# ─── TypeScript ───────────────────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ─── Vite ─────────────────────────────────────────────────────────────────────
+*.local
