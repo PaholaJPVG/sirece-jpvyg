@@ -4,7 +4,7 @@ import {
   Clock, Calendar, ArrowRight, RefreshCw, AlertCircle, Phone, X,
   CheckSquare, Check, Send, ShieldCheck
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input, Select, Textarea } from '@/components/ui/Input'
@@ -48,6 +48,7 @@ const SECCION_OPTIONS = [
 
 export default function RegistrarFalta() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   // Lista de estudiantes desde Supabase
   const [estudiantes, setEstudiantes] = useState<Estudiante[]>([])
@@ -97,6 +98,21 @@ export default function RegistrarFalta() {
   useEffect(() => {
     cargarEstudiantes()
   }, [cargarEstudiantes])
+
+  // Precargar estudiante si viene desde la navegación (Buscador Global u otra vista)
+  useEffect(() => {
+    if (estudiantes.length > 0) {
+      const stateEstId = (location.state as { estudianteId?: string } | null)?.estudianteId
+      const paramEstId = new URLSearchParams(location.search).get('estudianteId')
+      const targetId = stateEstId || paramEstId
+      if (targetId) {
+        const found = estudiantes.find((e) => e.id === targetId || e.codigo_estudiante === targetId)
+        if (found) {
+          setEstudianteSeleccionado(found)
+        }
+      }
+    }
+  }, [estudiantes, location.state, location.search])
 
   // Filtrado de estudiantes para el buscador rápido
   const estudiantesFiltrados = estudiantes.filter((e) => {

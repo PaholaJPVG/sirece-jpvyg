@@ -3,7 +3,7 @@ import {
   Search, MessageSquare, Trash2, Eye, RefreshCw,
   AlertCircle, CheckCircle, Send, ExternalLink, AlertTriangle, ShieldCheck
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Input, Select } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
@@ -26,6 +26,7 @@ import { FALTAS_LEVES_OFICIALES, type IncidenciaDB, type Estudiante } from '@/ty
 
 export default function HistorialIncidencias() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [incidencias, setIncidencias] = useState<IncidenciaDB[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -81,6 +82,16 @@ export default function HistorialIncidencias() {
   useEffect(() => {
     cargarIncidencias()
   }, [cargarIncidencias])
+
+  // Precargar filtro de búsqueda si viene desde la navegación (Buscador Global u otra vista)
+  useEffect(() => {
+    const stateBusqueda = (location.state as { busqueda?: string } | null)?.busqueda
+    const paramBusqueda = new URLSearchParams(location.search).get('busqueda')
+    const q = stateBusqueda || paramBusqueda
+    if (q) {
+      setBusqueda(q)
+    }
+  }, [location.state, location.search])
 
   // Notificar o reenviar WhatsApp automáticamente vía Green-API
   const handleReenviarWhatsApp = async (inc: IncidenciaDB) => {

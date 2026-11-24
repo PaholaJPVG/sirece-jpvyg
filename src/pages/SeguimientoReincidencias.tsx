@@ -189,8 +189,7 @@ export default function SeguimientoReincidencias() {
       `En concordancia con las Normas de Convivencia Escolar y el Reglamento Interno, se le CITA con carácter obligatorio a la institución para el día de mañana a las *08:00 hrs* a fin de sostener una reunión con el Comité de Gestión del Bienestar y Auxiliaría, y proceder con la firma del *Acta de Compromiso Disciplinario* correspondiente.\n\n` +
       `Agradecemos su puntual asistencia y compromiso con la formación de su menor hijo(a).\n\n` +
       `*Atentamente,*\n` +
-      `*Comité de Gestión del Bienestar y Convivencia Escolar*\n` +
-      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+      `*Comité de Gestión del Bienestar y Convivencia Escolar*`
     )
   }
 

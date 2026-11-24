@@ -98,8 +98,7 @@ export function generarMensajeWhatsApp(
       obsLinea +
       `\nLa puntualidad es un valor formativo esencial para el aprovechamiento pedagógico y la disciplina escolar. Le solicitamos conversar en el hogar para tomar las previsiones necesarias y asegurar su llegada oportuna al plantel.\n\n` +
       `*Atentamente,*\n` +
-      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
-      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+      `*Comité de Gestión del Bienestar y Convivencia Escolar*`
     )
   }
 
@@ -119,8 +118,7 @@ export function generarMensajeWhatsApp(
       obsLinea +
       `\nLe recordamos que la asistencia constante a clases es indispensable para la continuidad de sus aprendizajes. Agradecemos acercarse o comunicarse con la institución para presentar la debida justificación dentro de las 24 horas.\n\n` +
       `*Atentamente,*\n` +
-      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
-      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+      `*Comité de Gestión del Bienestar y Convivencia Escolar*`
     )
   }
 
@@ -140,8 +138,7 @@ export function generarMensajeWhatsApp(
       obsLinea +
       `\nEl porte correcto del uniforme institucional fortalece el sentido de pertenencia, la igualdad y el orden en nuestro colegio. Solicitamos verificar desde el hogar que el estudiante asista debidamente uniformado(a) a partir de la siguiente jornada escolar.\n\n` +
       `*Atentamente,*\n` +
-      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
-      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+      `*Comité de Gestión del Bienestar y Convivencia Escolar*`
     )
   }
 
@@ -166,8 +163,7 @@ export function generarMensajeWhatsApp(
       obsLinea +
       `\nEl cumplimiento de las pautas de presentación personal e higiene promueve un clima escolar de orden, respeto mutuo y disciplina. Solicitamos su valiosa colaboración familiar para subsanar esta observación a la brevedad posible.\n\n` +
       `*Atentamente,*\n` +
-      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
-      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+      `*Comité de Gestión del Bienestar y Convivencia Escolar*`
     )
   }
 
@@ -187,8 +183,7 @@ export function generarMensajeWhatsApp(
       obsLinea +
       `\nDe acuerdo con el Reglamento Interno y las Normas de Convivencia, el uso de celulares durante las horas pedagógicas está restringido salvo indicación expresa del docente para fines de aprendizaje. Le pedimos dialogar con su menor hijo(a) sobre el uso responsable de la tecnología para evitar distracciones en el aula.\n\n` +
       `*Atentamente,*\n` +
-      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
-      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+      `*Comité de Gestión del Bienestar y Convivencia Escolar*`
     )
   }
 
@@ -210,8 +205,7 @@ export function generarMensajeWhatsApp(
     `⏰ *Hora:* ${horaStr}\n\n` +
     `Solicitamos dialogar con su menor hijo(a) en el hogar para fortalecer los acuerdos de convivencia y su formación integral.\n\n` +
     `*Atentamente,*\n` +
-    `*Auxiliaría y Comité de Convivencia Escolar*\n` +
-    `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+    `*Comité de Gestión del Bienestar y Convivencia Escolar*`
   )
 }
 
