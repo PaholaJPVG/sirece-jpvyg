@@ -190,7 +190,12 @@ export default function HistorialIncidencias() {
       (est ? `${est.nombres} ${est.apellidos}`.toLowerCase().includes(q) : false) ||
       (est?.codigo_estudiante ? est.codigo_estudiante.toLowerCase().includes(q) : false)
 
-    const matchFalta = !faltaFiltro || inc.tipo_falta === faltaFiltro
+    const matchFalta =
+      !faltaFiltro ||
+      inc.tipo_falta === faltaFiltro ||
+      (faltaFiltro === 'Presentación personal' && inc.tipo_falta.toLowerCase().includes('presentación')) ||
+      (faltaFiltro === 'Sin uniforme' && inc.tipo_falta.toLowerCase().includes('uniforme')) ||
+      (faltaFiltro === 'Uso de celular s/autorización' && inc.tipo_falta.toLowerCase().includes('celular'))
 
     let matchNotif = true
     if (notifFiltro === 'notificado') {
@@ -286,7 +291,7 @@ export default function HistorialIncidencias() {
                 onChange={(e) => setFaltaFiltro(e.target.value)}
                 options={[
                   { value: '', label: 'Todas las faltas leves' },
-                  ...FALTAS_LEVES_OFICIALES.map((f) => ({ value: f, label: f.slice(0, 35) + '...' })),
+                  ...FALTAS_LEVES_OFICIALES.map((f) => ({ value: f, label: f })),
                 ]}
               />
             </div>

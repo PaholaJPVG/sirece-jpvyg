@@ -26,7 +26,7 @@ import { type Estudiante, type IncidenciaDB } from '@/types'
 // ─── Etiquetas y colores para las 5 Faltas Leves Oficiales ─────────────────────
 const CONFIG_FALTAS = [
   {
-    key: 'Tardanza',
+    keys: ['tardanza'],
     short: 'Tardanza',
     color: 'bg-amber-500',
     barBg: 'bg-amber-100',
@@ -34,7 +34,23 @@ const CONFIG_FALTAS = [
     border: 'border-amber-200',
   },
   {
-    key: 'Incumplimiento de presentación personal',
+    keys: ['inasistencia'],
+    short: 'Inasistencia',
+    color: 'bg-red-500',
+    barBg: 'bg-red-100',
+    text: 'text-red-700',
+    border: 'border-red-200',
+  },
+  {
+    keys: ['sin uniforme', 'uniforme'],
+    short: 'Sin uniforme',
+    color: 'bg-blue-600',
+    barBg: 'bg-blue-100',
+    text: 'text-blue-700',
+    border: 'border-blue-200',
+  },
+  {
+    keys: ['presentación personal', 'presentacion', 'aseo', 'corte y peinados', 'maquillaje', 'piercings'],
     short: 'Presentación personal',
     color: 'bg-purple-600',
     barBg: 'bg-purple-100',
@@ -42,28 +58,12 @@ const CONFIG_FALTAS = [
     border: 'border-purple-200',
   },
   {
-    key: 'Descuido en deberes escolares',
-    short: 'Descuido en deberes',
-    color: 'bg-blue-600',
-    barBg: 'bg-blue-100',
-    text: 'text-blue-700',
-    border: 'border-blue-200',
-  },
-  {
-    key: 'Interrupción del desarrollo de la clase',
-    short: 'Interrupción de clase',
-    color: 'bg-rose-500',
-    barBg: 'bg-rose-100',
-    text: 'text-rose-700',
-    border: 'border-rose-200',
-  },
-  {
-    key: 'Expresiones inadecuadas',
-    short: 'Expresiones inadecuadas',
-    color: 'bg-slate-600',
-    barBg: 'bg-slate-100',
-    text: 'text-slate-700',
-    border: 'border-slate-200',
+    keys: ['celular', 'dispositivos', 'interrupción', 'interrupcion'],
+    short: 'Uso de celular s/autorización',
+    color: 'bg-indigo-600',
+    barBg: 'bg-indigo-100',
+    text: 'text-indigo-700',
+    border: 'border-indigo-200',
   },
 ]
 
@@ -197,9 +197,10 @@ export default function Dashboard() {
 
   // ─── DISTRIBUCIÓN DE LAS 5 FALTAS LEVES ──────────────────────────────────────
   const distribucionFaltas = CONFIG_FALTAS.map((cfg) => {
-    const cantidad = incidencias.filter((i) =>
-      i.tipo_falta.toLowerCase().includes(cfg.key.toLowerCase())
-    ).length
+    const cantidad = incidencias.filter((i) => {
+      const tipo = i.tipo_falta.toLowerCase()
+      return cfg.keys.some((k) => tipo.includes(k))
+    }).length
     const porcentaje = totalIncidencias > 0 ? Math.round((cantidad / totalIncidencias) * 100) : 0
     return {
       ...cfg,

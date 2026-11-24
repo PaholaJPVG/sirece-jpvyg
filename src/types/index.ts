@@ -67,43 +67,36 @@ export interface Estudiante {
 // ── Tipos de Falta ────────────────────────────────────────────────────────────
 export const FALTAS_LEVES_OFICIALES = [
   'Tardanza',
-  'Incumplimiento de presentación personal (aseo personal, corte y peinados inadecuados, maquillaje, accesorios piercings, aretes, anillos, cadenas y pulseras)',
-  'Descuido en deberes escolares',
-  'Interrupción del desarrollo de la clase',
-  'Expresiones inadecuadas',
+  'Inasistencia',
+  'Sin uniforme',
+  'Presentación personal',
+  'Uso de celular s/autorización',
 ] as const
 
 export type TipoFaltaLeve = typeof FALTAS_LEVES_OFICIALES[number]
 
-export const SUB_OPCIONES_FALTAS: Record<TipoFaltaLeve, string[]> = {
-  'Tardanza': [
-    'Ingreso fuera de hora',
-    'Tardanza reiterada',
-    'Sin justificación',
-  ],
-  'Incumplimiento de presentación personal (aseo personal, corte y peinados inadecuados, maquillaje, accesorios piercings, aretes, anillos, cadenas y pulseras)': [
-    'Aseo personal',
-    'Corte de cabello inadecuado',
-    'Peinado inadecuado',
+export const SUBCATEGORIAS_PRESENTACION_PERSONAL = [
+  'Corte de cabello no reglamentario',
+  'Cabello teñido',
+  'Maquillaje',
+  'Piercings',
+] as const
+
+export type SubcategoriaPresentacionPersonal = typeof SUBCATEGORIAS_PRESENTACION_PERSONAL[number]
+
+export const SUB_OPCIONES_FALTAS: Record<string, string[]> = {
+  'Presentación personal': [
+    'Corte de cabello no reglamentario',
+    'Cabello teñido',
     'Maquillaje',
-    'Piercings, aretes, anillos, cadenas y pulseras',
-    'Sin uniforme',
+    'Piercings',
   ],
-  'Descuido en deberes escolares': [
-    'No trajo tarea',
-    'No trajo cuaderno/materiales',
-    'No trabajó en clase',
-  ],
-  'Interrupción del desarrollo de la clase': [
-    'Conversa constantemente',
-    'Uso de celular sin autorización',
-    'Se levanta sin permiso',
-    'Desorden en aula',
-  ],
-  'Expresiones inadecuadas': [
-    'Vocabulario soez',
-    'Falta de respeto a compañero',
-    'Falta de respeto al docente',
+  // Compatibilidad con registros antiguos
+  'Incumplimiento de presentación personal (aseo personal, corte y peinados inadecuados, maquillaje, accesorios piercings, aretes, anillos, cadenas y pulseras)': [
+    'Corte de cabello no reglamentario',
+    'Cabello teñido',
+    'Maquillaje',
+    'Piercings',
   ],
 }
 

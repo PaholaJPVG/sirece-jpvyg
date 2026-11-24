@@ -13,7 +13,54 @@ export interface CreateIncidenciaInput {
 }
 
 /**
+ * Extrae la subcategoría y la observación limpia desde subMotivos o desde el campo descripcion
+ */
+export function extraerDetallesFalta(
+  descripcion?: string | null,
+  subMotivos?: string[] | null
+): { subcategoria: string | null; observacion: string | null } {
+  let subcategoria: string | null = null
+  let observacion: string | null = null
+
+  if (subMotivos && subMotivos.length > 0) {
+    subcategoria = subMotivos.join(', ')
+    if (descripcion && descripcion.trim()) {
+      observacion = descripcion.trim()
+    }
+  } else if (descripcion && descripcion.trim()) {
+    const desc = descripcion.trim()
+    if (desc.startsWith('Motivo específico:')) {
+      const parts = desc.split('. Obs: ')
+      subcategoria = parts[0].replace('Motivo específico:', '').trim()
+      if (parts[1] && parts[1].trim()) {
+        observacion = parts[1].trim()
+      }
+    } else if (desc.startsWith('Obs: ')) {
+      observacion = desc.replace('Obs: ', '').trim()
+    } else {
+      observacion = desc
+    }
+  }
+
+  return { subcategoria, observacion }
+}
+
+/**
+ * Normaliza el tipo de falta para aplicar la plantilla dinámica correspondiente
+ */
+function clasificarTipoFalta(tipo: string): 'tardanza' | 'inasistencia' | 'sin_uniforme' | 'presentacion_personal' | 'celular' | 'otro' {
+  const t = (tipo || '').toLowerCase().trim()
+  if (t === 'tardanza') return 'tardanza'
+  if (t === 'inasistencia') return 'inasistencia'
+  if (t === 'sin uniforme' || t.includes('uniforme')) return 'sin_uniforme'
+  if (t === 'presentación personal' || t.includes('presentación') || t.includes('presentacion')) return 'presentacion_personal'
+  if (t.includes('celular')) return 'celular'
+  return 'otro'
+}
+
+/**
  * Genera el texto formal del comunicado institucional por WhatsApp
+ * Aplica plantillas dinámicas personalizadas y formativas según cada uno de los 5 tipos de falta leve.
  * Utiliza formato limpio y negritas con asteriscos (*...*).
  */
 export function generarMensajeWhatsApp(
@@ -31,31 +78,122 @@ export function generarMensajeWhatsApp(
   const fechaStr = fecha || new Date().toISOString().split('T')[0]
   const horaStr = hora || new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false })
 
-  let subMotivosLinea = ''
-  let detalleTexto = ''
+  const { subcategoria, observacion } = extraerDetallesFalta(descripcion, subMotivos)
+  const obsLinea = observacion ? `📝 *Observación:* ${observacion}\n` : ''
+  const tipoClase = clasificarTipoFalta(tipoFalta)
 
-  if (subMotivos && subMotivos.length > 0) {
-    subMotivosLinea = `🔍 *Motivo específico:* ${subMotivos.join(', ')}\n`
-    if (descripcion && descripcion.trim()) {
-      detalleTexto = `📝 *Detalle:* ${descripcion.trim()}\n`
-    }
-  } else if (descripcion && descripcion.trim()) {
-    // Si viene del historial guardado como "Motivo específico: ... Obs: ..."
-    const desc = descripcion.trim()
-    if (desc.startsWith('Motivo específico:')) {
-      const parts = desc.split('. Obs: ')
-      const motivoPart = parts[0].replace('Motivo específico:', '').trim()
-      subMotivosLinea = `🔍 *Motivo específico:* ${motivoPart}\n`
-      if (parts[1] && parts[1].trim()) {
-        detalleTexto = `📝 *Detalle:* ${parts[1].trim()}\n`
-      }
-    } else {
-      detalleTexto = `📝 *Detalle:* ${desc}\n`
-    }
-  } else {
-    detalleTexto = `📝 *Detalle:* Sin observaciones adicionales.\n`
+  // 1. PLANTILLA: TARDANZA
+  if (tipoClase === 'tardanza') {
+    return (
+      `*I.E. JUAN PABLO VISCARDO Y GUZMÁN*\n` +
+      `*COMUNICADO DE PUNTUALIDAD — SIRECE*\n\n` +
+      `Estimado(a) apoderado(a) *${nombreApoderado}*:\n\n` +
+      `Le saludamos cordialmente para comunicarle que el(la) estudiante:\n` +
+      `👤 *Estudiante:* ${nombreEstudiante}\n` +
+      `🏷️ *Código:* ${codigoEst}\n` +
+      `📚 *Grado y Sección:* ${gradoSec}\n\n` +
+      `Ha registrado una *TARDANZA* en el ingreso a la institución educativa:\n` +
+      `📅 *Fecha:* ${fechaStr}\n` +
+      `⏰ *Hora de ingreso:* ${horaStr}\n` +
+      obsLinea +
+      `\nLa puntualidad es un valor formativo esencial para el aprovechamiento pedagógico y la disciplina escolar. Le solicitamos conversar en el hogar para tomar las previsiones necesarias y asegurar su llegada oportuna al plantel.\n\n` +
+      `*Atentamente,*\n` +
+      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
+      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+    )
   }
 
+  // 2. PLANTILLA: INASISTENCIA
+  if (tipoClase === 'inasistencia') {
+    return (
+      `*I.E. JUAN PABLO VISCARDO Y GUZMÁN*\n` +
+      `*COMUNICADO DE INASISTENCIA ESCOLAR — SIRECE*\n\n` +
+      `Estimado(a) apoderado(a) *${nombreApoderado}*:\n\n` +
+      `Por medio del presente se le comunica que el(la) estudiante:\n` +
+      `👤 *Estudiante:* ${nombreEstudiante}\n` +
+      `🏷️ *Código:* ${codigoEst}\n` +
+      `📚 *Grado y Sección:* ${gradoSec}\n\n` +
+      `Ha registrado *INASISTENCIA* en la jornada escolar del día de hoy:\n` +
+      `📅 *Fecha:* ${fechaStr}\n` +
+      `⏰ *Hora de registro:* ${horaStr}\n` +
+      obsLinea +
+      `\nLe recordamos que la asistencia constante a clases es indispensable para la continuidad de sus aprendizajes. Agradecemos acercarse o comunicarse con la institución para presentar la debida justificación dentro de las 24 horas.\n\n` +
+      `*Atentamente,*\n` +
+      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
+      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+    )
+  }
+
+  // 3. PLANTILLA: SIN UNIFORME
+  if (tipoClase === 'sin_uniforme') {
+    return (
+      `*I.E. JUAN PABLO VISCARDO Y GUZMÁN*\n` +
+      `*COMUNICADO DE UNIFORME ESCOLAR — SIRECE*\n\n` +
+      `Estimado(a) apoderado(a) *${nombreApoderado}*:\n\n` +
+      `Nos dirigimos a usted para informarle que el(la) estudiante:\n` +
+      `👤 *Estudiante:* ${nombreEstudiante}\n` +
+      `🏷️ *Código:* ${codigoEst}\n` +
+      `📚 *Grado y Sección:* ${gradoSec}\n\n` +
+      `Se ha presentado a la institución educativa *SIN EL UNIFORME REGLAMENTARIO*:\n` +
+      `📅 *Fecha:* ${fechaStr}\n` +
+      `⏰ *Hora:* ${horaStr}\n` +
+      obsLinea +
+      `\nEl porte correcto del uniforme institucional fortalece el sentido de pertenencia, la igualdad y el orden en nuestro colegio. Solicitamos verificar desde el hogar que el estudiante asista debidamente uniformado(a) a partir de la siguiente jornada escolar.\n\n` +
+      `*Atentamente,*\n` +
+      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
+      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+    )
+  }
+
+  // 4. PLANTILLA: PRESENTACIÓN PERSONAL
+  if (tipoClase === 'presentacion_personal') {
+    const subcatTexto = subcategoria
+      ? `🔍 *Motivo específico:* ${subcategoria}\n`
+      : '🔍 *Motivo específico:* Observación en presentación personal\n'
+
+    return (
+      `*I.E. JUAN PABLO VISCARDO Y GUZMÁN*\n` +
+      `*COMUNICADO DE PRESENTACIÓN PERSONAL — SIRECE*\n\n` +
+      `Estimado(a) apoderado(a) *${nombreApoderado}*:\n\n` +
+      `Por medio del presente le informamos que el(la) estudiante:\n` +
+      `👤 *Estudiante:* ${nombreEstudiante}\n` +
+      `🏷️ *Código:* ${codigoEst}\n` +
+      `📚 *Grado y Sección:* ${gradoSec}\n\n` +
+      `Ha registrado una observación en su *PRESENTACIÓN PERSONAL*:\n` +
+      subcatTexto +
+      `📅 *Fecha:* ${fechaStr}\n` +
+      `⏰ *Hora:* ${horaStr}\n` +
+      obsLinea +
+      `\nEl cumplimiento de las pautas de presentación personal e higiene promueve un clima escolar de orden, respeto mutuo y disciplina. Solicitamos su valiosa colaboración familiar para subsanar esta observación a la brevedad posible.\n\n` +
+      `*Atentamente,*\n` +
+      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
+      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+    )
+  }
+
+  // 5. PLANTILLA: USO DE CELULAR S/AUTORIZACIÓN
+  if (tipoClase === 'celular') {
+    return (
+      `*I.E. JUAN PABLO VISCARDO Y GUZMÁN*\n` +
+      `*COMUNICADO SOBRE DISPOSITIVOS ELECTRÓNICOS — SIRECE*\n\n` +
+      `Estimado(a) apoderado(a) *${nombreApoderado}*:\n\n` +
+      `Le comunicamos que el(la) estudiante:\n` +
+      `👤 *Estudiante:* ${nombreEstudiante}\n` +
+      `🏷️ *Código:* ${codigoEst}\n` +
+      `📚 *Grado y Sección:* ${gradoSec}\n\n` +
+      `Ha registrado una incidencia por *USO DE CELULAR SIN AUTORIZACIÓN*:\n` +
+      `📅 *Fecha:* ${fechaStr}\n` +
+      `⏰ *Hora:* ${horaStr}\n` +
+      obsLinea +
+      `\nDe acuerdo con el Reglamento Interno y las Normas de Convivencia, el uso de celulares durante las horas pedagógicas está restringido salvo indicación expresa del docente para fines de aprendizaje. Le pedimos dialogar con su menor hijo(a) sobre el uso responsable de la tecnología para evitar distracciones en el aula.\n\n` +
+      `*Atentamente,*\n` +
+      `*Auxiliaría y Comité de Convivencia Escolar*\n` +
+      `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
+    )
+  }
+
+  // 6. PLANTILLA GENÉRICA DE RESPALDO (Compatibilidad con registros anteriores)
+  const subLinea = subcategoria ? `🔍 *Motivo específico:* ${subcategoria}\n` : ''
   return (
     `*I.E. JUAN PABLO VISCARDO Y GUZMÁN*\n` +
     `*COMUNICADO DE INCIDENCIA ESTUDIANTIL — SIRECE*\n\n` +
@@ -66,13 +204,13 @@ export function generarMensajeWhatsApp(
     `📚 *Grado y Sección:* ${gradoSec}\n\n` +
     `Ha registrado una *FALTA LEVE* en nuestra institución:\n` +
     `⚠️ *Falta registrada:* ${tipoFalta}\n` +
-    subMotivosLinea +
-    detalleTexto +
+    subLinea +
+    obsLinea +
     `📅 *Fecha:* ${fechaStr}\n` +
     `⏰ *Hora:* ${horaStr}\n\n` +
     `Solicitamos dialogar con su menor hijo(a) en el hogar para fortalecer los acuerdos de convivencia y su formación integral.\n\n` +
     `*Atentamente,*\n` +
-    `*Comité de Gestión del Bienestar y Convivencia Escolar*\n` +
+    `*Auxiliaría y Comité de Convivencia Escolar*\n` +
     `I.E. Juan Pablo Viscardo y Guzmán — Arequipa`
   )
 }

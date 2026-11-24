@@ -147,12 +147,12 @@ export default function RegistrarFalta() {
 
     // Validación obligatoria para presentación personal
     if (
-      tipoFalta ===
-        'Incumplimiento de presentación personal (aseo personal, corte y peinados inadecuados, maquillaje, accesorios piercings, aretes, anillos, cadenas y pulseras)' &&
+      (tipoFalta === 'Presentación personal' ||
+       tipoFalta.startsWith('Incumplimiento de presentación personal')) &&
       subMotivosSeleccionados.length === 0
     ) {
       setFormError(
-        'Para la falta de presentación personal, debes marcar al menos un motivo específico (ej: Piercings, aretes, anillos, cadenas y pulseras, etc.).'
+        'Para la falta de Presentación personal, debes seleccionar obligatoriamente al menos una subcategoría (Corte de cabello no reglamentario, Cabello teñido, Maquillaje o Piercings).'
       )
       return
     }
@@ -625,7 +625,7 @@ export default function RegistrarFalta() {
               {FALTAS_LEVES_OFICIALES.map((falta, idx) => {
                 const isSelected = tipoFalta === falta
                 const subOpciones = SUB_OPCIONES_FALTAS[falta] || []
-                const esObligatorio = falta.startsWith('Incumplimiento')
+                const esObligatorio = falta === 'Presentación personal' || falta.startsWith('Incumplimiento')
 
                 return (
                   <div
@@ -672,7 +672,7 @@ export default function RegistrarFalta() {
                           <span className="text-[11px] font-bold text-[#1e3a5f] uppercase tracking-wider flex items-center gap-1.5">
                             <CheckSquare size={13} className="text-[#2563a0]" />
                             {esObligatorio
-                              ? 'Selecciona los motivos específicos observados (obligatorio):'
+                              ? 'Selecciona la subcategoría específica (obligatorio):'
                               : 'Detalles específicos opcionales (marca uno o varios):'}
                           </span>
                           {subMotivosSeleccionados.length > 0 && (
