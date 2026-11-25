@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import logo from '@/assets/logo.jpg'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth, formatearRol } from '@/context/AuthContext'
 import { LoginModal } from '@/components/auth/LoginModal'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -41,7 +41,9 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
   const location = useLocation()
   const navigate = useNavigate()
   const pageInfo = PAGE_TITLES[location.pathname] ?? { title: 'SIRECE', subtitle: '' }
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, usuarioActivo, isAuthenticated, signOut } = useAuth()
+  const activeUser = usuarioActivo || profile
+  const estaAutenticado = isAuthenticated || Boolean(activeUser || user)
   const [loginModalOpen, setLoginModalOpen] = useState(false)
 
   // ─── Estado del Buscador Global ──────────────────────────────────────────────
@@ -55,20 +57,20 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
   const searchContainerRef = useRef<HTMLDivElement>(null)
 
   // Obtener iniciales y nombre para mostrar
-  const displayName = profile
-    ? `${profile.nombres} ${profile.apellidos}`
+  const displayName = activeUser
+    ? `${activeUser.nombres} ${activeUser.apellidos}`.trim()
     : user?.email
     ? user.email.split('@')[0]
     : 'Modo Directivo'
 
-  const displayRole = profile?.rol
-    ? profile.rol.toUpperCase()
+  const displayRole = activeUser
+    ? formatearRol(activeUser.rol)
     : user
     ? 'Usuario Autenticado'
     : 'Acceso Local'
 
-  const initials = profile
-    ? `${profile.nombres[0] || ''}${profile.apellidos[0] || ''}`.toUpperCase()
+  const initials = activeUser
+    ? `${activeUser.nombres[0] || ''}${activeUser.apellidos[0] || activeUser.nombres[1] || ''}`.toUpperCase()
     : user?.email
     ? user.email.substring(0, 2).toUpperCase()
     : 'AD'
@@ -329,30 +331,31 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           </button>
 
           {/* Sección de usuario / Auth */}
-          {user ? (
+          {estaAutenticado ? (
             <div className="flex items-center gap-2">
               <div
                 className="flex items-center gap-2 cursor-pointer group"
-                title={`Sesión iniciada como: ${user.email}`}
+                title={`Sesión iniciada: ${displayName} (${displayRole})`}
               >
-                <div className="w-8 h-8 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold shadow-sm ring-2 ring-blue-100">
                   {initials}
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-xs font-semibold text-gray-800 leading-tight max-w-[130px] truncate">
+                  <p className="text-xs font-semibold text-gray-800 leading-tight max-w-[140px] truncate">
                     {displayName}
                   </p>
-                  <p className="text-[10px] text-gray-400 leading-tight">{displayRole}</p>
+                  <p className="text-[10px] text-blue-700 font-semibold leading-tight">{displayRole}</p>
                 </div>
               </div>
 
               {/* Botón Logout */}
               <button
                 onClick={() => signOut()}
-                className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                className="flex items-center gap-1 p-1.5 md:px-2 md:py-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors text-xs font-medium"
                 title="Cerrar sesión"
               >
-                <LogOut size={18} />
+                <LogOut size={16} />
+                <span className="hidden sm:inline">Cerrar sesión</span>
               </button>
             </div>
           ) : (

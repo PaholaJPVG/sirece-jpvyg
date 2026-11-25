@@ -3,7 +3,7 @@
 // ── Auth / Usuarios ───────────────────────────────────────────────────────────
 export type UserRole = 'director' | 'subdirector' | 'profesor' | 'tutor' | 'auxiliar' | 'admin'
 
-export type CargoPersonal = 'profesor' | 'auxiliar'
+export type CargoPersonal = 'profesor' | 'auxiliar' | 'admin' | 'director' | 'subdirector' | string
 
 export interface PersonalInstitucional {
   id: string

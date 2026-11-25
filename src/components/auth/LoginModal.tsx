@@ -18,6 +18,12 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  const handleClose = () => {
+    setErrorMsg(null)
+    setSuccess(false)
+    onClose()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg(null)
@@ -42,15 +48,17 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
       setTimeout(() => {
         setLoading(false)
         setSuccess(false)
+        setIdentificador('')
+        setPassword('')
         onClose()
-      }, 800)
+      }, 500)
     }
   }
 
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       title="Acceso al Sistema SIRECE"
       description="Ingresa con tu usuario institucional para acceder a tus funciones en el sistema."
       size="sm"

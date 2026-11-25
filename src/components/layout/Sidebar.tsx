@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { clsx } from 'clsx'
 import {
@@ -13,8 +14,13 @@ import {
   Settings,
   X,
   ChevronRight,
+  LogOut,
+  LogIn,
+  User as UserIcon,
 } from 'lucide-react'
 import logo from '@/assets/logo.jpg'
+import { useAuth, formatearRol } from '@/context/AuthContext'
+import { LoginModal } from '@/components/auth/LoginModal'
 
 // ─── Definición del menú ──────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -59,6 +65,29 @@ interface SidebarProps {
 // ─── Componente ───────────────────────────────────────────────────────────────
 export const Sidebar = ({ open, onClose }: SidebarProps) => {
   const location = useLocation()
+  const { user, profile, usuarioActivo, isAuthenticated, signOut } = useAuth()
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
+
+  const activeUser = usuarioActivo || profile
+  const estaAutenticado = isAuthenticated || Boolean(activeUser || user)
+
+  const displayName = activeUser
+    ? `${activeUser.nombres} ${activeUser.apellidos}`.trim()
+    : user?.email
+    ? user.email.split('@')[0]
+    : 'Sin sesión'
+
+  const displayRole = activeUser
+    ? formatearRol(activeUser.rol)
+    : user
+    ? 'Usuario Autenticado'
+    : 'Sin sesión'
+
+  const initials = activeUser
+    ? `${activeUser.nombres[0] || ''}${activeUser.apellidos[0] || activeUser.nombres[1] || ''}`.toUpperCase()
+    : user?.email
+    ? user.email.substring(0, 2).toUpperCase()
+    : 'AD'
 
   return (
     <>
@@ -155,19 +184,61 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
           ))}
         </nav>
 
-        {/* Footer del sidebar */}
-        <div className="p-4 border-t border-white/10">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#2980b9] flex items-center justify-center text-white text-xs font-bold">
-              AD
+        {/* Footer del sidebar con usuario conectado en tiempo real */}
+        <div className="p-3.5 border-t border-white/10 bg-black/20">
+          {estaAutenticado ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-full bg-[#2980b9] flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-md ring-2 ring-white/20">
+                  {initials}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white text-xs font-semibold truncate leading-tight">
+                    {displayName}
+                  </p>
+                  <p className="text-[#5bafd6] text-[11px] font-medium truncate leading-tight mt-0.5">
+                    {displayRole}
+                  </p>
+                  {activeUser?.usuario && (
+                    <p className="text-white/40 text-[10px] truncate leading-tight">
+                      @{activeUser.usuario}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="p-1.5 text-white/50 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                title="Cerrar sesión"
+              >
+                <LogOut size={16} />
+              </button>
             </div>
-            <div className="min-w-0">
-              <p className="text-white text-xs font-medium truncate">Administrador</p>
-              <p className="text-white/40 text-[10px] truncate">admin@jpvyg.edu.pe</p>
+          ) : (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 text-xs flex-shrink-0">
+                  <UserIcon size={14} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white text-xs font-medium truncate">Sin sesión</p>
+                  <p className="text-white/40 text-[10px] truncate">Acceso limitado</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setLoginModalOpen(true)}
+                className="px-2.5 py-1 bg-[#2980b9] hover:bg-[#1f6391] text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1 shadow-sm"
+              >
+                <LogIn size={13} />
+                <span>Entrar</span>
+              </button>
             </div>
-          </div>
+          )}
         </div>
       </aside>
+
+      {/* Modal de login desde el sidebar si no tiene sesión */}
+      <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </>
   )
 }
