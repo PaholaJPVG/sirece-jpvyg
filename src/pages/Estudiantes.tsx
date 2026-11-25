@@ -272,19 +272,68 @@ export default function Estudiantes() {
     setDeleting(false)
   }
 
-  // Filtrado
+  // Filtrado de estudiantes en tiempo real
   const estudiantesFiltrados = estudiantes.filter((e) => {
-    const q = busqueda.toLowerCase().trim()
-    const matchBusqueda =
-      !q ||
-      e.nombres.toLowerCase().includes(q) ||
-      e.apellidos.toLowerCase().includes(q) ||
-      (e.apoderado_nombre ? e.apoderado_nombre.toLowerCase().includes(q) : false)
-
+    // 1. Filtro de Grado
     const matchGrado = !gradoFiltro || e.grado === gradoFiltro
+
+    // 2. Filtro de Sección
     const matchSeccion = !seccionFiltro || e.seccion === seccionFiltro
 
-    return matchBusqueda && matchGrado && matchSeccion
+    if (!matchGrado || !matchSeccion) return false
+
+    // 3. Filtro de Búsqueda de texto libre
+    const q = busqueda.trim().toLowerCase()
+    if (!q) return true
+
+    // Extraer campos de manera segura (tolerante a null/undefined)
+    const codEstudiante = (e.codigo_estudiante || '').trim().toLowerCase()
+    const codGenerado = generarCodigoEstudiante(e.grado || '', e.seccion || '', e.numero_orden).trim().toLowerCase()
+    const nombres = (e.nombres || '').trim().toLowerCase()
+    const apellidos = (e.apellidos || '').trim().toLowerCase()
+    const apoderado = (e.apoderado_nombre || '').trim().toLowerCase()
+    const apoderadoWa = (e.apoderado_whatsapp || '').trim().toLowerCase()
+    const dni = ((e as any).dni || (e as any).numero_documento || '').toString().trim().toLowerCase()
+    const orden = (e.numero_orden !== undefined && e.numero_orden !== null ? String(e.numero_orden) : '').trim().toLowerCase()
+
+    const grado = (e.grado || '').trim().toLowerCase()
+    const gradoNum = grado.replace(/\D/g, '')
+    const seccion = (e.seccion || '').trim().toLowerCase()
+
+    // Variantes combinadas de grado y sección (ej: "5to b", "5b", "5 to b")
+    const gradoSec = `${grado} ${seccion}`
+    const gradoSecDirecto = `${grado}${seccion}`
+    const gradoSecCorto = `${gradoNum}${seccion}`
+    const gradoSecCortoEspacio = `${gradoNum} ${seccion}`
+
+    // Nombre completo en ambos sentidos
+    const nombreCompleto = `${apellidos} ${nombres}`
+    const nombreCompletoInverso = `${nombres} ${apellidos}`
+
+    // Bolsa de texto indexable
+    const searchable = [
+      codEstudiante,
+      codGenerado,
+      nombres,
+      apellidos,
+      nombreCompleto,
+      nombreCompletoInverso,
+      dni,
+      grado,
+      seccion,
+      gradoSec,
+      gradoSecDirecto,
+      gradoSecCorto,
+      gradoSecCortoEspacio,
+      apoderado,
+      apoderadoWa,
+      orden
+    ].join(' ')
+
+    // Si la búsqueda tiene múltiples palabras (ej: "5a1", "5b13", "canales 5b" o "portugal melany"),
+    // cada palabra debe coincidir con alguna parte del estudiante
+    const tokens = q.split(/\s+/).filter(Boolean)
+    return tokens.every((token) => searchable.includes(token))
   })
 
   return (
@@ -357,13 +406,25 @@ export default function Estudiantes() {
 
         <CardContent>
           {/* Barra de filtros */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
             <div className="sm:col-span-2">
               <Input
-                placeholder="Buscar por nombres, apellidos o apoderado..."
+                placeholder="Buscar por código (ej: 5A1, 5B13), apellidos, nombres, DNI..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 leftAddon={<Search size={14} />}
+                rightAddon={
+                  busqueda ? (
+                    <button
+                      type="button"
+                      onClick={() => setBusqueda('')}
+                      className="text-gray-400 hover:text-gray-600 transition-colors p-0.5 rounded-full hover:bg-gray-100 cursor-pointer"
+                      title="Borrar búsqueda"
+                    >
+                      <X size={14} />
+                    </button>
+                  ) : null
+                }
               />
             </div>
             <div>
@@ -373,14 +434,54 @@ export default function Estudiantes() {
                 options={[{ value: '', label: 'Todos los grados' }, ...GRADO_OPTIONS]}
               />
             </div>
-            <div>
-              <Select
-                value={seccionFiltro}
-                onChange={(e) => setSeccionFiltro(e.target.value)}
-                options={[{ value: '', label: 'Todas las secciones' }, ...SECCION_OPTIONS]}
-              />
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Select
+                  value={seccionFiltro}
+                  onChange={(e) => setSeccionFiltro(e.target.value)}
+                  options={[{ value: '', label: 'Todas las secciones' }, ...SECCION_OPTIONS]}
+                />
+              </div>
+              {(busqueda || gradoFiltro || seccionFiltro) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setBusqueda('')
+                    setGradoFiltro('')
+                    setSeccionFiltro('')
+                  }}
+                  className="text-gray-500 hover:text-gray-800 px-2.5 h-9 flex-shrink-0"
+                  title="Limpiar búsqueda y filtros"
+                >
+                  <X size={15} />
+                </Button>
+              )}
             </div>
           </div>
+
+          {/* Barra de estado / conteo y botón rápido de limpiar */}
+          {!loading && estudiantes.length > 0 && (
+            <div className="flex items-center justify-between text-xs text-gray-500 mb-4 px-1">
+              <span>
+                Mostrando <strong className="text-gray-800">{estudiantesFiltrados.length}</strong> de <strong className="text-gray-800">{estudiantes.length}</strong> estudiantes matriculados
+              </span>
+              {(busqueda || gradoFiltro || seccionFiltro) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusqueda('')
+                    setGradoFiltro('')
+                    setSeccionFiltro('')
+                  }}
+                  className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 font-medium transition-colors cursor-pointer"
+                >
+                  <X size={13} />
+                  <span>Limpiar filtros</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Estado de carga */}
           {loading ? (
@@ -502,18 +603,35 @@ export default function Estudiantes() {
               })}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-400 border border-dashed border-gray-200 rounded-xl">
+            <div className="text-center py-12 text-gray-400 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
               <GraduationCap size={36} className="mx-auto mb-2 opacity-30 text-gray-400" />
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-medium text-gray-700">
                 {estudiantes.length === 0
                   ? 'No hay estudiantes registrados en la base de datos'
                   : 'No se encontraron estudiantes con los filtros seleccionados'}
               </p>
-              <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">
+              <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
                 {estudiantes.length === 0
                   ? 'Haz clic en "Registrar Estudiante" para añadir al primer alumno.'
-                  : 'Intenta modificar el término de búsqueda o limpiar los filtros de grado y sección.'}
+                  : `No hay coincidencias para "${busqueda.trim() || [gradoFiltro, seccionFiltro].filter(Boolean).join(' - ')}". Verifica que el código o nombre esté bien escrito o limpia los filtros.`}
               </p>
+              {estudiantes.length > 0 && (
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm"
+                    leftIcon={<X size={14} />}
+                    onClick={() => {
+                      setBusqueda('')
+                      setGradoFiltro('')
+                      setSeccionFiltro('')
+                    }}
+                  >
+                    Limpiar búsqueda y filtros
+                  </Button>
+                </div>
+              )}
               {estudiantes.length === 0 && (
                 <Button size="sm" className="mt-3" leftIcon={<Plus size={14} />} onClick={handleOpenCreate}>
                   Registrar primer estudiante
